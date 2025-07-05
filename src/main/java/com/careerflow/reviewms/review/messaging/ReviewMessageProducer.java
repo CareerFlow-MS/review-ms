@@ -1,10 +1,12 @@
 package com.careerflow.reviewms.review.messaging;
 
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.stereotype.Service;
 
 import com.careerflow.reviewms.review.Review;
 import com.careerflow.reviewms.review.dto.ReviewMessage;
 
+@Service
 public class ReviewMessageProducer {
 
     private final RabbitTemplate rabbitTemplate;
@@ -15,7 +17,7 @@ public class ReviewMessageProducer {
 
     public void sendReviewMessage(Review review) {
         ReviewMessage reviewMessage = new ReviewMessage();
-        reviewMessage.setId(reviewMessage.getId());
+        reviewMessage.setId(review.getId());
         reviewMessage.setTitle(review.getTitle());
         reviewMessage.setDescription(review.getDescription());
         reviewMessage.setRating(review.getRating());

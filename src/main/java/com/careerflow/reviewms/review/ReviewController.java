@@ -13,14 +13,18 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.careerflow.reviewms.review.messaging.ReviewMessageProducer;
+
 @RestController
 @RequestMapping("/reviews")
 public class ReviewController {
 
     private ReviewService reviewService;
+    private ReviewMessageProducer reviewMessageProducer;
 
-    public ReviewController(ReviewService reviewService) {
+    public ReviewController(ReviewService reviewService, ReviewMessageProducer reviewMessageProducer) {
         this.reviewService = reviewService;
+        this.reviewMessageProducer = reviewMessageProducer;
     }
 
     @GetMapping
@@ -31,8 +35,13 @@ public class ReviewController {
 
     @PostMapping
     public ResponseEntity<String> addReview(@RequestParam Long companyId, @RequestBody Review review) {
-        reviewService.addReview(companyId, review);
-        return new ResponseEntity<>("Review added successfully", HttpStatus.CREATED);
+        boolean isReviewAdded = reviewService.addReview(companyId, review);
+        if (isReviewAdded) {
+            reviewMessageProducer.sendReviewMessage(review);
+            return ResponseEntity.status(HttpStatus.CREATED).body("Review added successfully");
+        } else {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Failed to add review");
+        }
     }
 
     @GetMapping("/{reviewId}")
